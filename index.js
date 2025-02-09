@@ -6,27 +6,40 @@ const stopButton = document.getElementById('stop');
 const audioElement = document.getElementById('audio');
 
 startButton.addEventListener('click', async () => {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  mediaRecorder = new MediaRecorder(stream);
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
 
-  mediaRecorder.ondataavailable = (event) => {
-    audioChunks.push(event.data);
-  };
+    audioChunks = []; // Limpa os chunks antes de começar a nova gravação
 
-  mediaRecorder.onstop = () => {
-    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-    audioChunks = [];
-    const audioUrl = URL.createObjectURL(audioBlob);
-    audioElement.src = audioUrl;
-  };
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        audioChunks.push(event.data);
+      }
+    };
 
-  mediaRecorder.start();
-  startButton.disabled = true;
-  stopButton.disabled = false;
+    mediaRecorder.onstop = () => {
+      if (audioChunks.length > 0) {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        audioElement.src = audioUrl;
+      } else {
+        console.error("Nenhum áudio foi gravado.");
+      }
+    };
+
+    mediaRecorder.start();
+    startButton.disabled = true;
+    stopButton.disabled = false;
+  } catch (error) {
+    console.error("Erro ao acessar o microfone:", error);
+  }
 });
 
 stopButton.addEventListener('click', () => {
-  mediaRecorder.stop();
+  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    mediaRecorder.stop();
+  }
   startButton.disabled = false;
   stopButton.disabled = true;
 });
