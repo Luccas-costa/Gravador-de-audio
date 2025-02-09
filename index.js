@@ -6,9 +6,20 @@ const stopButton = document.getElementById('stop');
 const audioElement = document.getElementById('audio');
 
 startButton.addEventListener('click', async () => {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert("Seu dispositivo não suporta gravação de áudio.");
+    return;
+  }
+
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
+
+    if (typeof MediaRecorder === "undefined") {
+      alert("MediaRecorder não é suportado neste navegador.");
+      return;
+    }
+
+    mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
 
     audioChunks = []; // Limpa os chunks antes de começar a nova gravação
 
@@ -20,7 +31,7 @@ startButton.addEventListener('click', async () => {
 
     mediaRecorder.onstop = () => {
       if (audioChunks.length > 0) {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const audioUrl = URL.createObjectURL(audioBlob);
         audioElement.src = audioUrl;
       } else {
@@ -33,6 +44,7 @@ startButton.addEventListener('click', async () => {
     stopButton.disabled = false;
   } catch (error) {
     console.error("Erro ao acessar o microfone:", error);
+    alert("Erro ao acessar o microfone.");
   }
 });
 
