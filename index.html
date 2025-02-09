@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gravador de Áudio com AudioContext</title>
+    <title>Gravador de Áudio com Download</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -27,26 +27,32 @@
 </head>
 
 <body>
-    <h1>Gravador de Áudio com AudioContext</h1>
+    <h1>Gravador de Áudio com Download</h1>
     <button id="start">Iniciar Gravação</button>
     <button id="stop" disabled>Parar Gravação</button>
     <audio id="audio" controls></audio>
+    <br>
+    <button id="download" disabled>Baixar Áudio</button>
 
     <script>
         let audioContext;
         let mediaStream;
         let recorder;
         let audioData = [];
+        let wavBlob;
 
         const startButton = document.getElementById('start');
         const stopButton = document.getElementById('stop');
         const audioElement = document.getElementById('audio');
+        const downloadButton = document.getElementById('download');
 
         startButton.addEventListener('click', async () => {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const source = audioContext.createMediaStreamSource(mediaStream);
             recorder = audioContext.createScriptProcessor(4096, 1, 1);
+
+            audioData = []; // Limpa os dados de áudio para a nova gravação
 
             recorder.onaudioprocess = (event) => {
                 const data = event.inputBuffer.getChannelData(0);
@@ -58,20 +64,28 @@
 
             startButton.disabled = true;
             stopButton.disabled = false;
+            downloadButton.disabled = true;
         });
 
         stopButton.addEventListener('click', () => {
             recorder.disconnect();
             audioContext.close();
             mediaStream.getTracks().forEach(track => track.stop());
-            const wavBlob = createWAV(audioData);
+
+            wavBlob = createWAV(audioData);
             const audioUrl = URL.createObjectURL(wavBlob);
             audioElement.src = audioUrl;
 
-            audioData = []; // Limpa o buffer para futuras gravações
-
+            downloadButton.disabled = false; // Habilita o botão de download
             startButton.disabled = false;
             stopButton.disabled = true;
+        });
+
+        downloadButton.addEventListener('click', () => {
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(wavBlob);
+            downloadLink.download = 'gravacao.wav';
+            downloadLink.click();
         });
 
         function createWAV(audioData) {
