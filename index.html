@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravador de Áudio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+        }
+
+        audio {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Gravador de Áudio</h1>
+    <button id="start">Iniciar Gravação</button>
+    <button id="stop" disabled>Parar Gravação</button>
+    <audio id="audio" controls></audio>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
